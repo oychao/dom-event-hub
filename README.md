@@ -1,1 +1,3 @@
-# edit your docs here
+# dom-event-hub
+
+delegate all event listeners onto root element
