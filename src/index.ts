@@ -1,3 +1,3 @@
-import hub from './eventHub/eventHub';
+import EventHub from './eventHub/eventHub';
 
-export default hub;
+export default EventHub;

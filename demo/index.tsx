@@ -1,5 +1,6 @@
 import React from 'jsx-dom-render';
 
+// import EventHub from 'dom-event-hub';
 import EventHub from '../bin';
 
 let root: HTMLElement;
@@ -62,7 +63,7 @@ ehub.listen(
   }
 );
 ehub.listen(
-  root,
+  tag,
   'change',
   (e: Event): any => {
     console.log('hello change', e.target);
