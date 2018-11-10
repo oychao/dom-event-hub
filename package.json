@@ -1,6 +1,6 @@
 {
   "name": "dom-event-hub",
-  "version": "0.0.1-alpha.0",
+  "version": "0.0.1-alpha.1",
   "main": "./bin/index.js",
   "typings": "./bin/index.d.ts",
   "author": {
@@ -14,7 +14,7 @@
     "event",
     "delegate"
   ],
-  "description": "DOM event hub, inspired by React events",
+  "description": "DOM event hub, inspired by React events, [STILL WORKING]",
   "files": [
     "LICENSE.md",
     "README.md",

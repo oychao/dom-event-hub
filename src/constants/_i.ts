@@ -1,2 +1,2 @@
-export type iSyntheticEvent = {};
-export type iEventHandler = (e: Event) => any;
+export type tSyntheticEvent = {};
+export type tEventHandler = (e: Event) => any;
