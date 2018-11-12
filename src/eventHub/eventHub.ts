@@ -1,45 +1,53 @@
-import { tEventHandler } from '../constants/_i';
-import { iHub } from './_i';
+import { IEventHandler } from '../constants/t';
+import { iDomHub, iSyntheticHub } from './t';
+import { TAG_DOCUMENT } from '../constants/tags';
 
 import getNonBubbleEventRelativeTags from './nonBubbleEventsTagMap';
 import { queryAncestors } from '../constants/domUtil';
 
-class EventHub implements iHub {
+class EventHub implements iDomHub {
   root: HTMLElement;
-  eventMap: WeakMap<HTMLElement, Map<string, Set<tEventHandler>>>;
+  eventMap: WeakMap<HTMLElement, Map<string, Set<IEventHandler>>>;
   ifEventManagedMap: Map<HTMLElement, Map<string, boolean>>;
+
   constructor(root: HTMLElement) {
-    this.root = root;
-    this.eventMap = new WeakMap<HTMLElement, Map<string, Set<tEventHandler>>>();
+    this.root = <HTMLElement>root;
+    this.eventMap = new WeakMap<HTMLElement, Map<string, Set<IEventHandler>>>();
     this.ifEventManagedMap = new Map<HTMLElement, Map<string, boolean>>();
   }
-  listen(target: HTMLElement, eventName: string, handler: tEventHandler): any {
+
+  listen(
+    target: HTMLElement,
+    eventName: string,
+    handler: IEventHandler
+  ): any {
     const nonBubbleTagNames: Array<string> = getNonBubbleEventRelativeTags(
       eventName
     );
-    let mountTargets: Array<HTMLElement> = [];
+    let mountTargets: Array<Node> = [document];
     if (nonBubbleTagNames) {
-      const ancestors: Array<HTMLElement> = queryAncestors(target);
+      const ancestors: Array<HTMLElement> = queryAncestors(
+        target);
       mountTargets = ancestors.filter(
         (ele: HTMLElement): boolean =>
           ele.tagName && nonBubbleTagNames.includes(ele.tagName.toLowerCase())
       );
       nonBubbleTagNames.forEach(
         (tag: string): void => {
-          mountTargets = mountTargets.concat(
-            Array.from(target.querySelectorAll(tag))
-          );
+          if (tag === TAG_DOCUMENT) {
+            mountTargets.push(document);
+          } else {
+            mountTargets = mountTargets.concat(
+              Array.from(target.querySelectorAll(tag))
+            );
+          }
         }
       );
-    } else {
-      mountTargets = [this.root];
     }
     mountTargets.forEach(
       (mountTarget: HTMLElement): void => {
-        let ifSubnodeEventManagedMap: Map<
-          string,
-          boolean
-        > = this.ifEventManagedMap.get(mountTarget);
+        let ifSubnodeEventManagedMap: Map<string, boolean>
+          = this.ifEventManagedMap.get(mountTarget);
         if (!ifSubnodeEventManagedMap) {
           this.ifEventManagedMap.set(
             mountTarget,
@@ -57,37 +65,39 @@ class EventHub implements iHub {
         }
       }
     );
-    let handlerMap: Map<string, Set<tEventHandler>> = this.eventMap.get(target);
+    let handlerMap: Map<string, Set<IEventHandler>> = this.eventMap.get(<HTMLElement>target);
     if (!handlerMap) {
       this.eventMap.set(
-        target,
-        (handlerMap = new Map<string, Set<tEventHandler>>())
+        <HTMLElement>target,
+        (handlerMap = new Map<string, Set<IEventHandler>>())
       );
     }
-    let handlerSet: Set<tEventHandler> = handlerMap.get(eventName);
+    let handlerSet: Set<IEventHandler> = handlerMap.get(eventName);
     if (!handlerSet) {
-      handlerMap.set(eventName, (handlerSet = new Set<tEventHandler>()));
+      handlerMap.set(eventName, (handlerSet = new Set<IEventHandler>()));
     }
     handlerSet.add(handler);
   }
-  remove(target: HTMLElement, eventName: string, handler: tEventHandler): any {
-    const handlerMap: Map<string, Set<tEventHandler>> = this.eventMap.get(
-      target
-    );
-    let handlerSet: Set<tEventHandler> = handlerMap.get(eventName);
+
+  remove(
+    target: HTMLElement,
+    eventName: string,
+    handler: IEventHandler
+  ): any {
+    const handlerMap: Map<string, Set<IEventHandler>> = this.eventMap.get(<HTMLElement>target);
+    let handlerSet: Set<IEventHandler> = handlerMap.get(eventName);
     if (handlerSet) {
       handlerSet.delete(handler);
     }
   }
+
   bubble(target: HTMLElement, event: Event): any {
-    let curTarget: Node = <Node>target;
     let shouldPropagate: boolean = true;
-    let eventSet: Set<tEventHandler>;
-    while (curTarget && shouldPropagate) {
-      const handlerMap: Map<string, Set<tEventHandler>> = this.eventMap.get(<
-        HTMLElement
-      >curTarget);
-      curTarget = curTarget.parentNode;
+    let eventSet: Set<IEventHandler>;
+    const ancestors: Array<HTMLElement> = queryAncestors(target);
+    while (ancestors.length && shouldPropagate) {
+      const curTarget: Node = ancestors.shift();
+      const handlerMap: Map<string, Set<IEventHandler>> = this.eventMap.get(<HTMLElement>curTarget);
       if (!handlerMap) {
         continue;
       }
@@ -95,7 +105,7 @@ class EventHub implements iHub {
       if (!eventSet) {
         continue;
       }
-      eventSet.forEach((handler: tEventHandler) => {
+      eventSet.forEach((handler: IEventHandler) => {
         shouldPropagate = shouldPropagate && handler.call(undefined, event);
       });
     }

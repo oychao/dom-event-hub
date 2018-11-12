@@ -43,7 +43,7 @@
     "webpack-dev-server": "^3.1.7"
   },
   "dependencies": {
-    "dom-event-hub": "^0.0.1-alpha.0",
+    "dom-event-hub": "file:../",
     "jsx-dom-render": "^1.2.1"
   }
 }
