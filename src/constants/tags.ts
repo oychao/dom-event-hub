@@ -1,3 +1,4 @@
+export const TAG_DOCUMENT: string = 'document';
 export const TAG_DETAILS: string = 'details';
 export const TAG_INPUT: string = 'input';
 export const TAG_SELECT: string = 'select';
