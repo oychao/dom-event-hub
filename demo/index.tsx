@@ -3,6 +3,8 @@ import React from 'jsx-dom-render';
 // import EventHub from 'dom-event-hub';
 import EventHub from '../bin';
 
+import './index.less';
+
 let root: HTMLElement;
 let ul: HTMLElement;
 let tag: HTMLElement;
@@ -49,8 +51,10 @@ ehub.listen(root, 'blur',(e: Event): any => {
 ehub.listen(tag, 'change', (e: Event): any => {
   console.log('change', e.target);
 });
-ehub.listen(tag, 'mouseover', (e: Event): any => {
-  console.log('change', e.target);
+ehub.listen(ul, 'mouseover', (e: Event): any => {
+  console.log('mouseover', e.target);
 });
 
 ehub.listen(tag, 'change', (e: Event): any => {});
+
+console.log(ehub);

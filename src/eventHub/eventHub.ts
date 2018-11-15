@@ -8,12 +8,12 @@ import { queryAncestors } from '../constants/domUtil';
 class EventHub implements iDomHub {
   root: HTMLElement;
   eventMap: WeakMap<HTMLElement, Map<string, Set<IEventHandler>>>;
-  ifEventManagedMap: Map<HTMLElement, Map<string, boolean>>;
+  ifEventManagedMap: WeakMap<HTMLElement, Map<string, boolean>>;
 
   constructor(root: HTMLElement) {
     this.root = <HTMLElement>root;
     this.eventMap = new WeakMap<HTMLElement, Map<string, Set<IEventHandler>>>();
-    this.ifEventManagedMap = new Map<HTMLElement, Map<string, boolean>>();
+    this.ifEventManagedMap = new WeakMap<HTMLElement, Map<string, boolean>>();
   }
 
   listen(
@@ -59,7 +59,8 @@ class EventHub implements iDomHub {
             eventName,
             (e: Event): any => {
               this.bubble(<HTMLElement>e.target, e);
-            }
+            },
+            true
           );
           ifSubnodeEventManagedMap.set(eventName, true);
         }
@@ -92,10 +93,10 @@ class EventHub implements iDomHub {
   }
 
   bubble(target: HTMLElement, event: Event): any {
-    let shouldPropagate: boolean = true;
+    let shouldNotPropagate: boolean = false;
     let eventSet: Set<IEventHandler>;
     const ancestors: Array<HTMLElement> = queryAncestors(target);
-    while (ancestors.length && shouldPropagate) {
+    while (ancestors.length && !shouldNotPropagate) {
       const curTarget: Node = ancestors.shift();
       const handlerMap: Map<string, Set<IEventHandler>> = this.eventMap.get(<HTMLElement>curTarget);
       if (!handlerMap) {
@@ -106,7 +107,8 @@ class EventHub implements iDomHub {
         continue;
       }
       eventSet.forEach((handler: IEventHandler) => {
-        shouldPropagate = shouldPropagate && handler.call(undefined, event);
+        shouldNotPropagate = shouldNotPropagate ||
+          handler.call(undefined, event) === false;
       });
     }
   }
